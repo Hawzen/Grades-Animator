@@ -22,11 +22,11 @@ let metalImg;
 */
 
 function preload(){
-  metalImg = loadImage("metal.png");
+  // metalImg = loadImage("metal.png");
 }
 
 function setup() {
-  createCanvas(window.innerWidth, window.innerHeight);
+  createCanvas(window.screen.availWidth, window.screen.availHeight);
   background(70);
   bar = new Bar(metalImg);
   bar.addSubject(new Subject("CHEM", "XXX", "B+", 1))
