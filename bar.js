@@ -185,8 +185,15 @@ class Bar {
       if(semester != "tail"){
         curWidth = this.sumWidths(this.subs.semesters[i]);
         botLeft = p5.Vector.add(this.topLeft, createVector(curWidth, this.bSizes.h));
-        line(botLeft.x, botLeft.y, botLeft.x, 100);
+        if(Math.abs(botLeft.x-Math.abs(this.bSizes.w+this.topLeft.x)) > 10){
+          push();
+          fill(this.config.colors.text.sems);
+          text(`Semester: ${i+1}`, botLeft.x-35, this.topLeft.y+10);
+          line(botLeft.x, botLeft.y, botLeft.x, this.bSizes.h);  
+          pop();
+        }
       }
+
     });
   }
 
@@ -231,6 +238,67 @@ class Bar {
       }
     }
 
+    funcs.animate = () => {
+      this.animating = false;
+      let intervalId;
+      let animate_run = () => {
+        // This function will gradually add semesters and change their weightes to create an animation
+        
+        if(this.subs.semesters.length < 3)
+          return; // if there are less than 2 semesters return
+        if(this.animating === false){
+          this.animating = true;
+          this.stop = false;
+          this.start = new Date().getTime();
+          this.animation_factor = 5000.;
+        }
+        this.t = new Date().getTime() - this.start;
+        this.subs.semesters.forEach((value, index) => {
+          if(value === -1)
+            return;
+
+          let indices = this.semestersIndex(value);
+          let slice = [];
+          for (var i = indices[0]; i <= indices[1]; i++) {
+            slice.push(i);
+          }
+          
+          let condition = this.animation_factor * index - this.t;
+          if(condition > this.animation_factor)
+            this.editWeights(slice, new Array(slice.length).fill(0));
+          else if(condition > 0)
+            this.editWeights(slice, new Array(slice.length).fill(1 - condition / this.animation_factor));
+          else
+            this.editWeights(slice, new Array(slice.length).fill(1));
+        })
+        
+        if(this.t > this.animation_factor * this.subs.semesters.length - 2){
+          clearInterval(intervalId);
+        }
+      }
+
+      intervalId = window.setInterval(animate_run, 2);
+      if(this.stop)
+        clearInterval(intervalId);
+      
+
+    }
+
+    let toggle = true;
+    funcs.hide = () => 
+    {
+      Object.values(ui).forEach((el, _) => 
+        {
+          if(toggle) 
+            el.hide(); 
+          else 
+            el.show();
+        }
+      )
+      toggle = !toggle;
+    }
+    
+
     // Elements
     let interpolation = constrain(1.233333 - width * height / 4800000, 1.1, 1.2);
     let botLeft = createVector(this.topLeft.x, // Aprox bottom left of rectangle
@@ -263,8 +331,17 @@ class Bar {
     ui.chngView = createButton("Change view");
     ui.chngView.position(botLeft.x + ui.addSem.width, botLeft.y + ui.add.height * interpolation);
     ui.chngView.mousePressed(funcs.chngView);
+
+    ui.animate = createButton("Animate");
+    ui.animate.position(botLeft.x + ui.addSem.width + ui.chngView.width, botLeft.y + ui.add.height * interpolation);
+    ui.animate.mousePressed(funcs.animate);
     
-    ui.table = createDiv("");
+    let hide = createButton("x");
+    hide.position(0, 0);
+    hide.mousePressed(funcs.hide);
+    
+
+    ui.table = createDiv(""); 
     ui.table.style("box-shadow", "box-shadow: 0 0 20px rgba(0,0,0,2)");
     ui.table.style("background", "grey");
     ui.table.style("overflow-x", "hidden");
@@ -273,10 +350,14 @@ class Bar {
     ui.table.style("font-size", "20px");
     ui.table.position(botLeft.x, botLeft.y + ui.add.height * interpolation * 3);
     
-    return {ui: ui, funcs: funcs};
+    return {ui: ui, funcs: funcs, hide: hide};
   }
 
   // Helper functions
+
+  lerp(a, b, t){
+    return a * t + b * (1-t);
+  }
   
   semestersIndex(semester) { // Inclusive
     let semIndex = this.subs.semesters.indexOf(semester);
@@ -295,7 +376,7 @@ class Bar {
   }
   
   sliceSemesters(semester) { // Inclusive
-    let indices = this.semesterIndex(semester);
+    let indices = this.semestersIndex(semester);
     return this.subs.list.slice(indices[0], indices[1] + 1);  
   }
   

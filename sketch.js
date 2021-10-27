@@ -43,10 +43,10 @@ function setup() {
 
 function draw() {
   background(70);
-  if(t >= 1)
-    t = -1;
-  else
-    t += 0.01;
-  bar.editWeights([2, 4], [max(abs(t), 0.5), (max(abs(t), 0.2))-0.2]);
+  // if(t >= 1)
+  //   t = -1;
+  // else
+  //   t += 0.01;
+  // bar.editWeights([2, 4], [max(abs(t), 0.5), (max(abs(t), 0.2))-0.2]);
   bar.visualize()
 }
