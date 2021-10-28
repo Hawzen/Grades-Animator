@@ -20,7 +20,8 @@ class Bar {
   // Rectangle: Is the outer box of the bar
   // Block: is a segment of the recantgle that consists of two parts
   //  Loss part, Points part. Which are both rectangles inside the block
-  constructor(lossImg, bWProp = 0.8, bHProp = 0.3) {
+  constructor(bWProp = 0.8, bHProp = 0.3, offsetX = 0, offsetY = 0) {
+    let self = this;
     // Prop -> proportional to screen. size -> pixel number
     this.bProp = {
       w: bWProp,
@@ -31,8 +32,8 @@ class Bar {
       h: bHProp * height
     };
     this.topLeft = createVector( // Top left point of the rectangle
-      (1 - this.bProp.w) / 2 * width,
-      height * 0.38196601125 * 0.75
+      (1 - this.bProp.w) / 2 * width + offsetX,
+      height * 0.38196601125 * 0.75 + offsetY
     );
 
     /* points -> Sum of all points (computed in calcSegments)
@@ -51,7 +52,7 @@ class Bar {
     this.subs.semesters[-1] = -1;
     this.segmentWidths = [];
 
-    this.UI = this.UI(); // Instantiates all UI elements
+    this.UI = this.makeUI(); // Instantiates all UI elements
     this.config = {
       view: 'subs',
       info:{
@@ -70,7 +71,6 @@ class Bar {
         } // Filled at runtime
       }
     } // view: subs or semesters
-    this.lossImg = lossImg; // Used in background of blocks
   }
 
   addSubject(sub, weight = 1) {
@@ -127,6 +127,15 @@ class Bar {
   }
 
   visualize_blocks(view) {
+    // Print GPA
+    push()
+    fill(90);
+    rect(192, 235, 198, 50);
+    fill(200);
+    textSize(32);
+    text(`GPA: ${this.getGPA()}`, 200, 270);
+    pop()
+    
     // Call calcSegments first
     this.calcSegments()
 
@@ -197,7 +206,7 @@ class Bar {
     });
   }
 
-  UI() {
+  makeUI() {
     let funcs = {}; // UI Functions
     let ui = {}; // UI Elements
 
@@ -238,6 +247,20 @@ class Bar {
       }
     }
 
+    funcs.randomize = () => {
+      this.clearData()
+      let i = 0;
+      while(Math.random() > 0.1 + i){
+        let j = 0
+        i += 0.025
+        while(Math.random() > 0.1 + j * 5){
+          j += 0.0125
+          this.addSubject(this.randomSubject());
+        }
+        this.UI.funcs.addSemf();
+      }
+    }
+
     funcs.animate = () => {
       this.animating = false;
       let intervalId;
@@ -263,7 +286,8 @@ class Bar {
             slice.push(i);
           }
           
-          let condition = this.animation_factor * index - this.t;
+          const delay = this.animation_factor * .3;
+          let condition = this.animation_factor * index - this.t + delay;
           if(condition > this.animation_factor)
             this.editWeights(slice, new Array(slice.length).fill(0));
           else if(condition > 0)
@@ -271,7 +295,7 @@ class Bar {
           else
             this.editWeights(slice, new Array(slice.length).fill(1));
         })
-        
+
         if(this.t > this.animation_factor * this.subs.semesters.length - 2){
           clearInterval(intervalId);
         }
@@ -280,21 +304,24 @@ class Bar {
       intervalId = window.setInterval(animate_run, 2);
       if(this.stop)
         clearInterval(intervalId);
-      
-
     }
 
     let toggle = true;
-    funcs.hide = () => 
-    {
-      Object.values(ui).forEach((el, _) => 
-        {
+    funcs.hide = () => {
+      let buttons = document.getElementsByTagName("button");
+      let textAreas = document.getElementsByTagName("input");
+      
+      const els = [...buttons, ...textAreas];
+      for(var i = 0; i < els.length; i++){
+          let el = els[i];
+          if(el.textContent === "x")
+            continue;
+
           if(toggle) 
-            el.hide(); 
+            el.style.visibility = "hidden"; 
           else 
-            el.show();
-        }
-      )
+            el.style.visibility = "visible";
+      }
       toggle = !toggle;
     }
     
@@ -312,7 +339,7 @@ class Bar {
     for (let temp of [
         ["name", "Title (CSC)"],
         ["id", "ID (212)"],
-        ["grade", "Grade (A+\A\B+)"],
+        ["grade", "Grade (A+\A\..\F)"],
         ["hrs", "Hours (2)"]
       ]) {
       let field = temp[0],
@@ -324,16 +351,20 @@ class Bar {
       offset += (this.bSizes.w - ui.add.width) / 4;
     }
 
-    ui.addSem = createButton("New semester");
+    ui.addSem = createButton("Add semester");
     ui.addSem.position(botLeft.x, botLeft.y + ui.add.height * interpolation);
     ui.addSem.mousePressed(funcs.addSemf);
     
     ui.chngView = createButton("Change view");
-    ui.chngView.position(botLeft.x + ui.addSem.width, botLeft.y + ui.add.height * interpolation);
+    ui.chngView.position(ui.addSem.x + ui.addSem.width, botLeft.y + ui.add.height * interpolation);
     ui.chngView.mousePressed(funcs.chngView);
 
+    ui.randomize = createButton("Randomize");
+    ui.randomize.position(ui.chngView.x + ui.chngView.width, botLeft.y + ui.add.height * interpolation);
+    ui.randomize.mousePressed(funcs.randomize);
+
     ui.animate = createButton("Animate");
-    ui.animate.position(botLeft.x + ui.addSem.width + ui.chngView.width, botLeft.y + ui.add.height * interpolation);
+    ui.animate.position(ui.randomize.x + ui.randomize.width, botLeft.y + ui.add.height * interpolation);
     ui.animate.mousePressed(funcs.animate);
     
     let hide = createButton("x");
@@ -352,6 +383,7 @@ class Bar {
     
     return {ui: ui, funcs: funcs, hide: hide};
   }
+
 
   // Helper functions
 
@@ -395,6 +427,17 @@ class Bar {
       total += -this.subs.list[i].pointsProp
     return total / (end - start + 1) * this.bSizes.h;
   }
+
+  getGPA(){
+    let total = 0;
+    let points = 0;
+    for(let i in this.subs.list){
+      let sub = this.subs.list[i];
+      points += sub.points * this.subs.weights[i];
+      total += (sub.points + sub.loss) * this.subs.weights[i];
+    }
+    return Math.round(5 * points / total * 10000) / 10000;
+  }
   
   generateColor(i, rgb, threshold=50){ // rgb in the form: [r, g, b]
     let r, g, b;
@@ -422,6 +465,46 @@ class Bar {
         break;
       case "subs":
         fill(this.config.colors.rectColors.subs[i]);
+    }
+  }
+
+  randomSubject(){
+    let subName = _.sample(["CSC", "SWE", "MATH", "PHY", "ELC", "SAL", "ITC", "ICS"])
+    let id = Math.floor(Math.random() * 1000);
+    let grade = _.sample(["A+", "A", "B+", "B", "C+", "C", "D+", "D", "F"]);
+    let hrs = Math.floor(Math.random() * 10);
+
+    return new Subject(subName, id, grade, hrs);
+  }
+
+  clearData(){
+    this.subs = {
+      points: 0,
+      list: [],
+      weights: [],
+      semesters: ["tail"]
+    };
+    this.subs.semesters[-1] = -1;
+    this.segmentWidths = [];
+
+    this.UI = this.makeUI();
+    this.config = {
+      view: 'subs',
+      info:{
+        subs:{},
+        sems:{}
+      },
+      colors:{
+        loss: "crimson",
+        text: {
+          subs: "white",
+          sems: "black"
+        },
+        rectColors:{ 
+          subs:{},
+          sems:{tail:"rgb(100, 50, 10)"}
+        }
+      }
     }
   }
 }

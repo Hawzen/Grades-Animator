@@ -1,6 +1,4 @@
 let bar;
-let t = -1;
-let metalImg;
 
 /*
   * Data entry in-game ➕
@@ -21,32 +19,26 @@ let metalImg;
   * Touch screen support
 */
 
-function preload(){
-  // metalImg = loadImage("metal.png");
-}
-
 function setup() {
   createCanvas(window.screen.availWidth, window.screen.availHeight);
   background(70);
-  bar = new Bar(metalImg);
-  bar.addSubject(new Subject("CHEM", "XXX", "B+", 1))
-  bar.addSubject(new Subject("MATH", "106", "B", 2))
-  bar.addSubject(new Subject("MATH", "106", "B", 2))
-  bar.UI.funcs.addSemf();
-  bar.addSubject(new Subject("MATH", "106", "F", 2))
-  bar.addSubject(new Subject("MATH", "106", "B", 5))
-  bar.UI.funcs.addSemf();
-  bar.addSubject(new Subject("MATH", "106", "A+", 2))
-  bar.addSubject(new Subject("MATH", "106", "F", 2))
+  bar = new Bar();
+  // bar.addSubject(new Subject("CHEM", "XXX", "B+", 1))
+  // bar.addSubject(new Subject("MATH", "106", "B", 2))
+  // bar.addSubject(new Subject("MATH", "106", "B", 2))
+  // bar.UI.funcs.addSemf();
+  // bar.addSubject(new Subject("MATH", "106", "F", 2))
+  // bar.addSubject(new Subject("MATH", "106", "B", 5))
+  // bar.UI.funcs.addSemf();
+  // bar.addSubject(new Subject("MATH", "106", "A+", 2))
+  // bar.addSubject(new Subject("MATH", "106", "F", 2))
+
+  if(typeof data !== "undefined")
+    initBarWithJson(bar, "data.json");
 
 }
 
 function draw() {
   background(70);
-  // if(t >= 1)
-  //   t = -1;
-  // else
-  //   t += 0.01;
-  // bar.editWeights([2, 4], [max(abs(t), 0.5), (max(abs(t), 0.2))-0.2]);
-  bar.visualize()
+  bar.visualize();
 }
