@@ -18,4 +18,4 @@
 ### If you're studying in KSU you can follow the following steps to add all your history, or just do it manually (pre-reqs: python, pandas, numpy)
 * Sign in Edugate > `Academic` > `Academic history` > Save the page and rename the html file to whatever name you want then place it at the root of this repo
 * run `python extract_data.py YOUR_FILE_NAME.html`
-* Make sure the output is in the root of the repo. Then run the app
+* Make sure the output is in the root of the repo. Then run the site locally
