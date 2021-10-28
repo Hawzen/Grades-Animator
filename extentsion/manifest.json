@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+
+  "name": "Grade scraper",
+  "description": "Scrapes grades and opens a new tab to animate it",
+  "version": "0.1",
+
+  "browser_action": {
+   "default_icon": "best_pic.png",
+   "default_popup": "popup.html"
+  },
+  "permissions": [
+   "activeTab"
+   ]
+}
