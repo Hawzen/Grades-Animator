@@ -1,5 +1,5 @@
 # Grades-Animator
-### Animate your grades! try it out https://hawzen.me/candy_bar (desktop recommended!)
+### Animate your grades! try it out https://candy.hawzen.me/ (desktop recommended!)
 
 ![demo](https://i.imgur.com/GtRxDMN.png)
 
